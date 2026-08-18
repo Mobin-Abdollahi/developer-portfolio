@@ -1,3 +1,5 @@
+import { siteConfig } from "@/config/site";
+
 export const skills = [
   "Next.js",
   "React",
@@ -26,47 +28,52 @@ export const projects = [
   },
 ];
 
+export const name = "Mobin";
+export const title = "Computer Engineering Student";
+export const specialization = "Frontend Development";
+export const bio = "A passionate Computer Science student specializing in Frontend Development, focused on building modern web experiences.";
+
 export const aboutPoints = [
-  "Front-end developer focused on clean, modern, and responsive interfaces.",
-  "I enjoy building fast websites with strong UX and polished motion.",
-  "Currently working on modern web apps and portfolio-driven projects.",
+  "Computer Engineering student focused on designing modern, responsive, and user-friendly interfaces.",
+  "I love building fast, performant websites with excellent UX and smooth animations.",
+  "Currently working on modern web applications with a focus on clean code and innovative designs.",
 ];
 
 export const timeline = [
   {
     year: "2024 - Present",
-    title: "Front-End Developer",
-    company: "Freelance / Personal Projects",
-    desc: "Building modern interfaces with Next.js, Tailwind CSS, and Framer Motion.",
+    title: "Frontend Developer & Student",
+    company: "Computer Engineering - University",
+    desc: "Building modern interfaces with Next.js, Tailwind CSS, and Framer Motion while pursuing Computer Engineering degree.",
   },
   {
     year: "2023 - 2024",
-    title: "UI Developer",
-    company: "Learning & Practice",
-    desc: "Focused on component architecture, responsive design, and animations.",
+    title: "Frontend Development",
+    company: "Self-Learning & Projects",
+    desc: "Focused on component architecture, responsive design, and advanced animation techniques.",
   },
   {
     year: "2022 - 2023",
-    title: "Web Development Student",
+    title: "Web Development Learning",
     company: "Self-Learning",
-    desc: "Learned HTML, CSS, JavaScript, React, and modern frontend workflows.",
+    desc: "Learned HTML, CSS, JavaScript, React, and modern frontend development workflows.",
   },
 ];
 
 export const contacts = [
   {
     label: "Email",
-    value: "youremail@example.com",
-    href: "mailto:youremail@example.com",
+    value: siteConfig.email,
+    href: `mailto:${siteConfig.email}`,
   },
   {
     label: "LinkedIn",
-    value: "linkedin.com/in/yourname",
-    href: "https://linkedin.com",
+    value: siteConfig.linkedin,
+    href: siteConfig.linkedin,
   },
   {
     label: "GitHub",
-    value: "github.com/yourname",
-    href: "https://github.com",
+    value: siteConfig.github,
+    href: siteConfig.github,
   },
 ];

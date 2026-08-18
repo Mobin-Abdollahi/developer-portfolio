@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { aboutPoints } from "../data/portfolio";
+import { aboutPoints, name, title, specialization } from "../data/portfolio";
 
 export default function About() {
   return (
@@ -23,9 +23,11 @@ export default function About() {
             viewport={{ once: true }}
             className="glass glow rounded-3xl p-8"
           >
+            <p className="mb-4 text-lg font-semibold text-cyan-300">
+              {name}
+            </p>
             <p className="text-lg leading-8 text-slate-300">
-              I am a front-end developer who loves crafting elegant interfaces,
-              smooth interactions, and modern digital experiences.
+              {title} - {specialization}. I am passionate about creating beautiful interfaces, smooth interactions, and modern digital experiences.
             </p>
           </motion.div>
 

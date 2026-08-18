@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { name } from "../data/portfolio";
+import { siteConfig } from "@/config/site";
 
 const roles = [
   "Front-End Developer",
@@ -67,7 +69,7 @@ export default function Hero() {
           <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
             Hi, I&apos;m{" "}
             <span className="bg-linear-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">
-              Mobin
+              {name}
             </span>
           </h1>
 
@@ -125,7 +127,7 @@ export default function Hero() {
             <div className="relative aspect-square overflow-hidden rounded-3xl border border-white/10">
               <Image
                 src="/avatar.png"
-                alt="Your Name"
+                alt={siteConfig.name}
                 fill
                 priority
                 className="object-cover"
@@ -135,7 +137,7 @@ export default function Hero() {
               <div className="absolute inset-0 bg-linear-to-t from-[#08111f]/85 via-transparent to-transparent" />
 
               <div className="absolute bottom-6 left-6">
-                <p className="text-lg font-semibold text-white">Your Name</p>
+                <p className="text-lg font-semibold text-white">{siteConfig.name}</p>
                 <p className="mt-1 text-sm text-cyan-300">
                   Next.js & React Developer
                 </p>

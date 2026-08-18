@@ -1,5 +1,6 @@
 "use client";
 
+import { siteConfig } from "@/config/site";
 import { Mail, ArrowUp } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
@@ -15,7 +16,7 @@ export default function Footer() {
     <footer className="border-t border-white/10 px-6 py-10">
       <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
         <div>
-          <h3 className="text-xl font-semibold text-white">Your Name</h3>
+          <h3 className="text-xl font-semibold text-white">{siteConfig.name}</h3>
           <p className="mt-3 max-w-sm text-sm leading-7 text-slate-400">
             Front-end developer focused on clean UI, smooth motion, and modern web experiences.
           </p>
@@ -57,7 +58,7 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-4 border-t border-white/10 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-        <p>© 2026 Your Name. All rights reserved.</p>
+        <p>© 2026 {siteConfig.name}. All rights reserved.</p>
 
         <a
           href="#home"

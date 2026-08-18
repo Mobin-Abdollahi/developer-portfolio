@@ -1,23 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
-import { FaGithub } from "react-icons/fa";
 import { projects } from "../data/projects";
 
 export default function Projects() {
   return (
     <section id="projects" className="px-6 py-24">
       <div className="mx-auto max-w-6xl">
-        <motion.h3
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-10 text-3xl font-bold text-white"
-        >
-          Projects
-        </motion.h3>
+        <h2 className="mb-10 text-3xl font-bold text-white">Projects</h2>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {projects.map((project, index) => (
@@ -27,60 +20,63 @@ export default function Projects() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              whileHover={{ y: -8, scale: 1.01 }}
-              className="glass glow overflow-hidden rounded-3xl border border-white/10"
+              whileHover={{ y: -8 }}
+              className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl"
             >
-              <div className="relative aspect-16/10 overflow-hidden">
+              <div className="relative aspect-16/10">
                 <Image
                   src={project.image}
-                  alt={project.title}
+                  alt={`${project.title} preview`}
                   fill
-                  className="object-cover transition duration-500 hover:scale-105"
-                />
-                <div
-                  className="absolute inset-0 opacity-70"
-                  style={{
-                    background: `radial-gradient(circle at top, ${project.glowColor}, transparent 70%)`,
-                  }}
+                  className="object-cover"
                 />
               </div>
 
               <div className="p-6">
-                <h4 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-white">
                   {project.title}
-                </h4>
+                </h3>
 
-                <p className="mt-3 leading-7 text-slate-300">
-                  {project.description}
+                <p className="mt-3 text-sm leading-7 text-slate-300">
+                  {project.shortDescription}
                 </p>
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {project.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300"
+                      className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-200"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-6 flex gap-4">
+                <div className="mt-6 flex flex-wrap gap-4">
+                  <Link
+                    href={`/projects/${project.slug}`}
+                    className="text-cyan-300 transition hover:text-cyan-200"
+                    aria-label={`View details for ${project.title}`}
+                  >
+                    View Details
+                  </Link>
+
                   <a
                     href={project.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-cyan-300 transition hover:text-cyan-200"
+                    className="inline-flex items-center gap-2 text-slate-300 transition hover:text-white"
+                    aria-label={`Open GitHub repository for ${project.title}`}
                   >
-                    <FaGithub className="text-lg" />
                     GitHub
                   </a>
 
                   <a
-                    href={project.demoUrl}
+                    href={project.liveUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-cyan-300 transition hover:text-cyan-200"
+                    className="inline-flex items-center gap-2 text-slate-300 transition hover:text-white"
+                    aria-label={`Open live demo for ${project.title}`}
                   >
                     <ExternalLink size={18} />
                     Live Demo
