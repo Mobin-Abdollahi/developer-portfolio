@@ -9,6 +9,11 @@ export default function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+
+  // Honeypot: این فیلد از کاربر واقعی پنهان است.
+  // اگر پر باشد، معمولاً یعنی ربات فرم را پر کرده است.
+  const [website, setWebsite] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -22,9 +27,26 @@ export default function Contact() {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const trimmedMessage = message.trim();
+    const trimmedWebsite = website.trim();
+
+    // Honeypot:
+    // به ربات پیام موفقیت نشان می‌دهیم، اما هیچ درخواست واقعی ارسال نمی‌شود.
+    if (trimmedWebsite) {
+      setSuccess("Your message was sent successfully.");
+      setName("");
+      setEmail("");
+      setMessage("");
+      setWebsite("");
+      return;
+    }
 
     if (trimmedName.length < 2) {
       setError("Name must be at least 2 characters.");
+      return;
+    }
+
+    if (trimmedName.length > 100) {
+      setError("Name must be less than 100 characters.");
       return;
     }
 
@@ -35,6 +57,11 @@ export default function Contact() {
 
     if (trimmedMessage.length < 10) {
       setError("Message must be at least 10 characters.");
+      return;
+    }
+
+    if (trimmedMessage.length > 5000) {
+      setError("Message must be less than 5000 characters.");
       return;
     }
 
@@ -50,6 +77,9 @@ export default function Contact() {
           name: trimmedName,
           email: trimmedEmail,
           message: trimmedMessage,
+
+          // این فیلد به بک‌اند هم ارسال می‌شود.
+          website: trimmedWebsite,
         }),
       });
 
@@ -67,9 +97,11 @@ export default function Contact() {
         (data && typeof data.message === "string" && data.message) ||
           "Your message was sent successfully."
       );
+
       setName("");
       setEmail("");
       setMessage("");
+      setWebsite("");
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -86,9 +118,11 @@ export default function Contact() {
               <p className="text-sm uppercase tracking-[0.2em] text-cyan-300/80">
                 Contact
               </p>
+
               <h2 className="text-3xl font-semibold text-white sm:text-4xl">
                 Let&apos;s build something useful
               </h2>
+
               <p className="max-w-xl text-sm leading-7 text-white/70 sm:text-base">
                 Reach out for projects, collaboration, or anything related to
                 software engineering and product work.
@@ -105,8 +139,12 @@ export default function Contact() {
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300">
                     <Mail className="h-5 w-5" />
                   </span>
+
                   <span className="flex flex-col">
-                    <span className="text-sm text-white/50">{contact.label}</span>
+                    <span className="text-sm text-white/50">
+                      {contact.label}
+                    </span>
+
                     <span className="text-sm font-medium text-white">
                       {contact.value}
                     </span>
@@ -125,9 +163,13 @@ export default function Contact() {
           >
             <div className="space-y-6">
               <div>
-                <label htmlFor="name" className="mb-2 block text-sm text-white/70">
+                <label
+                  htmlFor="name"
+                  className="mb-2 block text-sm text-white/70"
+                >
                   Name
                 </label>
+
                 <input
                   id="name"
                   name="name"
@@ -144,9 +186,13 @@ export default function Contact() {
               </div>
 
               <div>
-                <label htmlFor="email" className="mb-2 block text-sm text-white/70">
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm text-white/70"
+                >
                   Email
                 </label>
+
                 <input
                   id="email"
                   name="email"
@@ -162,9 +208,13 @@ export default function Contact() {
               </div>
 
               <div>
-                <label htmlFor="message" className="mb-2 block text-sm text-white/70">
+                <label
+                  htmlFor="message"
+                  className="mb-2 block text-sm text-white/70"
+                >
                   Message
                 </label>
+
                 <textarea
                   id="message"
                   name="message"
@@ -180,12 +230,34 @@ export default function Contact() {
                 />
               </div>
 
+              {/* فیلد مخفی ضدربات: در ظاهر سایت دیده نمی‌شود */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-[10000px] h-px w-px overflow-hidden opacity-0"
+              >
+                <label htmlFor="website">Website</label>
+
+                <input
+                  id="website"
+                  name="website"
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               {error ? (
-                <p className="text-sm text-red-300">{error}</p>
+                <p role="alert" className="text-sm text-red-300">
+                  {error}
+                </p>
               ) : null}
 
               {success ? (
-                <p className="text-sm text-emerald-300">{success}</p>
+                <p role="status" className="text-sm text-emerald-300">
+                  {success}
+                </p>
               ) : null}
 
               <button
