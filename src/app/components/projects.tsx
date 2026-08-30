@@ -1,19 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
-import { projects } from "../data/projects";
+import { projects as defaultProjects } from "../data/projects";
 
 export default function Projects() {
+  const [projectList, setProjectList] = useState(defaultProjects);
+
+  useEffect(() => {
+    // گرفتن دیتای آپدیت‌شده از API عمومی
+    fetch("/api/projects")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjectList(data.projects);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="projects" className="px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <h2 className="mb-10 text-3xl font-bold text-white">Projects</h2>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project, index) => (
+          {projectList.map((project, index) => (
             <motion.article
               key={project.id}
               initial={{ opacity: 0, y: 24 }}
