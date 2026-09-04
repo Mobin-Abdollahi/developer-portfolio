@@ -1,81 +1,188 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import crypto from "crypto";
-import { projects as defaultProjects, type Project } from "@/app/data/projects";
+import {
+  projects as defaultProjects,
+  type Project,
+} from "@/app/data/projects";
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
+const COOKIE_NAME = "admin_session";
+const REDIS_KEY = "portfolio_projects";
+
+function getRequiredEnv(name: string): string | null {
+  const value = process.env[name]?.trim();
+  return value || null;
+}
 
 async function verifySession(): Promise<boolean> {
-  if (!ADMIN_SECRET) return false;
+  const adminSecret = getRequiredEnv("ADMIN_SECRET");
+
+  if (!adminSecret) {
+    console.error("ADMIN_SECRET is not configured");
+    return false;
+  }
+
   const cookieStore = await cookies();
-  const session = cookieStore.get("admin_session")?.value;
+  const session = cookieStore.get(COOKIE_NAME)?.value;
+
   if (!session) return false;
 
   const parts = session.split(".");
+
   if (parts.length !== 3) return false;
 
   const [prefix, expiry, signature] = parts;
+  const expiryNumber = Number(expiry);
+
+  if (
+    prefix !== "admin" ||
+    !Number.isFinite(expiryNumber) ||
+    expiryNumber <= Date.now() ||
+    !/^[a-f0-9]{64}$/i.test(signature)
+  ) {
+    return false;
+  }
+
   const payload = `${prefix}.${expiry}`;
+
   const expectedSignature = crypto
-    .createHmac("sha256", ADMIN_SECRET)
+    .createHmac("sha256", adminSecret)
     .update(payload)
     .digest("hex");
 
-  try {
-    const isValid = crypto.timingSafeEqual(
-      Buffer.from(signature, "hex"),
-      Buffer.from(expectedSignature, "hex")
-    );
-    return isValid && Number(expiry) > Date.now();
-  } catch {
+  const actualBuffer = Buffer.from(signature, "hex");
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+
+  if (actualBuffer.length !== expectedBuffer.length) {
     return false;
   }
+
+  return crypto.timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
 async function getProjectsFromRedis(): Promise<Project[] | null> {
+  const redisUrl = getRequiredEnv("UPSTASH_REDIS_REST_URL");
+  const redisToken = getRequiredEnv("UPSTASH_REDIS_REST_TOKEN");
+
+  if (!redisUrl || !redisToken) {
+    console.error("Upstash Redis environment variables are not configured");
+    return null;
+  }
+
   try {
-    const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/get/projects`, {
-      headers: {
-        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.result ? JSON.parse(data.result) : defaultProjects;
-  } catch {
+    const response = await fetch(
+      `${redisUrl}/get/${encodeURIComponent(REDIS_KEY)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "Redis GET failed:",
+        response.status,
+        await response.text()
+      );
+      return null;
+    }
+
+    const data: { result?: unknown } = await response.json();
+
+    if (!data.result) {
+      return defaultProjects;
+    }
+
+    const parsed =
+      typeof data.result === "string"
+        ? JSON.parse(data.result)
+        : data.result;
+
+    return Array.isArray(parsed) ? (parsed as Project[]) : null;
+  } catch (error) {
+    console.error("Redis fetch failed, using defaults:", error);
     return null;
   }
 }
 
 export async function GET() {
-  if (!verifySession()) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await verifySession())) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
+
   const projects = (await getProjectsFromRedis()) ?? defaultProjects;
+
   return NextResponse.json({ projects });
 }
 
-export async function PUT(req: NextRequest) {
-  if (!verifySession()) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function PUT(request: NextRequest) {
+  if (!(await verifySession())) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
+
+  const redisUrl = getRequiredEnv("UPSTASH_REDIS_REST_URL");
+  const redisToken = getRequiredEnv("UPSTASH_REDIS_REST_TOKEN");
+
+  if (!redisUrl || !redisToken) {
+    return NextResponse.json(
+      { error: "Redis is not configured" },
+      { status: 503 }
+    );
+  }
+
   try {
-    const { projects } = await req.json();
-    if (!Array.isArray(projects)) {
-      return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
+    const body = await request.json();
+
+    if (!body || !Array.isArray(body.projects)) {
+      return NextResponse.json(
+        { error: "Invalid data format" },
+        { status: 400 }
+      );
     }
-    await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/set/projects`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify([JSON.stringify(projects)]),
+
+    const response = await fetch(
+      `${redisUrl}/set/${encodeURIComponent(REDIS_KEY)}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          "Content-Type": "text/plain",
+        },
+        body: JSON.stringify(body.projects),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "Redis SET failed:",
+        response.status,
+        await response.text()
+      );
+
+      return NextResponse.json(
+        { error: "Failed to save projects to Redis" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      projects: body.projects,
     });
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Save error:", err);
-    return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+  } catch (error) {
+    console.error("Save error:", error);
+
+    return NextResponse.json(
+      { error: "Failed to process request" },
+      { status: 400 }
+    );
   }
 }
